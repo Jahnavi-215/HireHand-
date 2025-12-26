@@ -14,17 +14,30 @@ app.use(express.json());
 // allow CORS and credentials for local dev (adjust origin in production)
 const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:3001')
   .split(',')
-  .map((o) => o.trim())
+  .map(o => o.trim())
   .filter(Boolean);
+
 console.log('Allowed origins:', allowedOrigins);
-app.use(cors({
-  origin: (origin, cb) => {
-    console.log('Request from origin:', origin);
-    if (!origin) return cb(null, true); // allow non-browser clients
-    return allowedOrigins.includes(origin) ? cb(null, true) : cb(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-}));
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      console.log('Request from origin:', origin);
+
+      // allow server-to-server, curl, postman
+      if (!origin) return cb(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return cb(null, true);
+      }
+
+      // IMPORTANT: do NOT throw Error → just reject
+      return cb(null, false);
+    },
+    credentials: true,
+  })
+);
+
 app.use(cookieParser());
 // Swagger UI at /docs
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
