@@ -1,0 +1,93 @@
+name: Backend Integration Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install backend deps
+        working-directory: ./hirehand-backend
+        run: |
+          npm ci
+
+      - name: Generate Prisma client
+        working-directory: ./hirehand-backend
+        env:
+          DATABASE_URL: file:./test.db
+        run: |
+          npx prisma generate
+
+      - name: Push Prisma schema to test DB
+        working-directory: ./hirehand-backend
+        env:
+          DATABASE_URL: file:./test.db
+        run: |
+          npx prisma db push --accept-data-loss
+
+      - name: Run integration tests
+        working-directory: ./hirehand-backend
+        env:
+          DATABASE_URL: file:./test.db
+          NODE_ENV: test
+        run: |
+          npm run test:coverage
+
+      - name: Upload coverage report
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: hirehand-backend/coverage
+
+      - name: Lint backend
+        working-directory: ./hirehand-backend
+        run: |
+          npm run lint
+
+  frontend-ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install frontend deps
+        working-directory: ./react-lab
+        run: |
+          npm ci
+
+      - name: Lint frontend
+        working-directory: ./react-lab
+        run: |
+          npm run lint
+
+      - name: Run frontend tests with coverage
+        working-directory: ./react-lab
+        env:
+          CI: true
+        run: |
+          npm run test:ci
+
+      - name: Upload frontend coverage
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: react-lab/coverage

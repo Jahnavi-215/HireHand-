@@ -1,0 +1,32 @@
+{
+  "name": "hirehand-backend-test-scaffold",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "test": "jest --runInBand",
+    "test:coverage": "jest --runInBand --coverage --collectCoverageFrom=\"src/**/*.js\"",
+    "lint": "eslint src --ext .js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.0.0",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "swagger-ui-express": "^5.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "jest": "^29.0.0",
+    "nodemon": "^3.1.11",
+    "prisma": "^5.0.0",
+    "supertest": "^6.3.0"
+  }
+}
